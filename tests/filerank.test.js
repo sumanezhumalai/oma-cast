@@ -70,3 +70,15 @@ test("rank handles deterministic tie-breaking", () => {
   assert.strictEqual(ranked[0].id, "a")
   assert.strictEqual(ranked[1].id, "b")
 })
+
+test("rank strips folder prefix > before scoring", () => {
+  const root = "/home/user"
+  const items = [
+    { id: "proj", path: "/home/user/Projects", name: "Projects", dir: "/home/user", isDir: true },
+    { id: "other", path: "/home/user/Other", name: "Other", dir: "/home/user", isDir: true }
+  ]
+
+  const ranked = FileRank.rank(items, "> Proj", root)
+  assert.strictEqual(ranked[0].id, "proj")
+  assert.strictEqual(ranked[1].id, "other")
+})

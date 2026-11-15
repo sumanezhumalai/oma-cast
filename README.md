@@ -156,14 +156,16 @@ Pressing the binding again closes it.
 
 ## File Search
 
-Search **Search Files** in root, or open it from the built-in commands:
+Search **Search Files** in root, or press `Ctrl+F` from anywhere in `omacast`:
 
 - **Instant search:** Powered by `fd` with multi-term `--and` patterns, basename match tiers (exact, prefix, word boundary, substring, acronym), depth penalties, and a narrow prefix gap so typing near-complete prefixes (`Download` $\rightarrow$ `~/Downloads`) isn't buried by deep cache matches.
-- **Master-detail preview:** 40/60 split view with live previews:
+  - **Files by default:** Queries match files only by default (`fd --type file`).
+  - **Folder search with `>`:** Prefix with `>` (e.g. `> Projects` or bare `>`) to search directories (`fd --type directory`).
+- **Master-detail preview:** 40/60 split view with clean previews strictly for text, images, and PDFs:
   - Text & code: first 32 KB / 60 lines with syntax-clean line wrapping.
   - Images: full preview preserving aspect ratio.
-  - Folders: child item listing with folder (`󰉋 `) and file (`󰈔 `) glyphs.
-  - Information table: kind/MIME, modification timestamp, human-readable size, and full absolute path.
+  - PDFs: automatic first-page rasterization thumbnail via `pdftoppm` (cached in `~/.cache/omacast/pdf-thumbs/`) with `pdftotext` fallback.
+  - Folders, binaries & other files: clean centered icon display with kind, modified date, item count / file size, and full absolute path (no raw dumps or noise).
 - **Privacy-first:** Credentials and secrets (`~/.ssh`, `~/.gnupg`, `~/.aws`, `.env*`, `*.key`, `*.pem`, `*id_rsa*`) are never previewed; contents are safely masked as `Contents hidden for private files`.
 - **Keyboard actions:**
   - `↵`: Open file in default application, or open folder.

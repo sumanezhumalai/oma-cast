@@ -965,20 +965,20 @@ Item {
       var infoRows = [
         { label: "Kind", value: reply.description || (reply.kind === "dir" ? "Folder" : "File") },
         { label: "Modified", value: reply.modified || "" },
-        { label: "Size", value: reply.size ? FileRank.formatBytes(reply.size) : "" },
+        reply.kind === "dir" && reply.items
+          ? { label: "Items", value: reply.items }
+          : { label: "Size", value: reply.size ? FileRank.formatBytes(reply.size) : "" },
         { label: "Path", value: path }
       ]
       var previewText = ""
-      if (reply.kind === "dir" && reply.entries) {
-        previewText = reply.entries.map(function(e) { return (e.isDir ? "󰉋  " : "󰈔  ") + e.name }).join("\n")
-      } else if (reply.kind === "hidden") {
+      if (reply.kind === "hidden") {
         previewText = "Contents hidden for private files"
-      } else if (reply.kind === "binary") {
-        previewText = "Binary file"
       } else if (reply.text) {
         previewText = reply.text
       }
       var detail = {
+        title: reply.title || reply.name || "",
+        glyph: reply.glyph || (reply.kind === "dir" ? "\uf07b" : "\uf15b"),
         text: previewText,
         image: reply.image || "",
         info: infoRows

@@ -79,7 +79,8 @@ function pathPenalty(dir, name, searchRoot) {
 }
 
 function rank(list, pattern, searchRoot, maxTerms) {
-  var terms = String(pattern || "").split(/\s+/).filter(function(s) { return s.length > 0 })
+  var cleanPattern = String(pattern || "").replace(/^>\s*/, "")
+  var terms = cleanPattern.split(/\s+/).filter(function(s) { return s.length > 0 })
   if (maxTerms > 0) terms = terms.slice(0, maxTerms)
   var browsing = terms.length === 0 || (terms.length === 1 && terms[0] === ".")
   var scored = (list || []).map(function(f) {

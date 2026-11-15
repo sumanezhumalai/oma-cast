@@ -35,6 +35,38 @@ test("helper files command finds files matching pattern", () => {
   }
 })
 
+test("helper files command only searches files by default", () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "omacast-file-test-"))
+  try {
+    fs.writeFileSync(path.join(tmp, "project.txt"), "hello")
+    fs.mkdirSync(path.join(tmp, "project-folder"))
+
+    const res = runHelper("files", tmp, "project")
+    assert.strictEqual(res.ok, true)
+    assert.strictEqual(res.files.length, 1)
+    assert.strictEqual(res.files[0].name, "project.txt")
+    assert.strictEqual(res.files[0].isDir, false)
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true })
+  }
+})
+
+test("helper files command searches directories when prefixed with >", () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "omacast-file-test-"))
+  try {
+    fs.writeFileSync(path.join(tmp, "project.txt"), "hello")
+    fs.mkdirSync(path.join(tmp, "project-folder"))
+
+    const res = runHelper("files", tmp, "> project")
+    assert.strictEqual(res.ok, true)
+    assert.strictEqual(res.files.length, 1)
+    assert.strictEqual(res.files[0].name, "project-folder")
+    assert.strictEqual(res.files[0].isDir, true)
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true })
+  }
+})
+
 test("helper files command handles multi-term query with AND semantics", () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "omacast-file-test-"))
   try {
@@ -60,9 +92,9 @@ test("helper preview command handles directory", () => {
     const res = runHelper("preview", tmp)
     assert.strictEqual(res.ok, true)
     assert.strictEqual(res.kind, "dir")
-    assert.strictEqual(Array.isArray(res.entries), true)
-    assert.strictEqual(res.entries.length, 2)
-    assert.strictEqual(res.entries[0].isDir, true) // dirs sorted first
+    assert.strictEqual(res.items, "2 items")
+    assert.strictEqual(res.glyph, "\uf07b")
+    assert.strictEqual(res.text, "")
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true })
   }
@@ -93,7 +125,7 @@ test("helper preview command masks secret and credential files", () => {
     const res = runHelper("preview", envFile)
     assert.strictEqual(res.ok, true)
     assert.strictEqual(res.kind, "hidden")
-    assert.strictEqual(res.text, undefined)
+    assert.strictEqual(res.text, "Contents hidden for private files")
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true })
   }
@@ -108,7 +140,20 @@ test("helper preview command detects binary files", () => {
     const res = runHelper("preview", binFile)
     assert.strictEqual(res.ok, true)
     assert.strictEqual(res.kind, "binary")
+    assert.strictEqual(res.text, "")
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true })
+  }
+})
+
+test("helper preview command handles PDF preview", () => {
+  const samplePdf = "/usr/share/doc/speexdsp/manual.pdf"
+  if (!fs.existsSync(samplePdf)) return
+  const res = runHelper("preview", samplePdf)
+  assert.strictEqual(res.ok, true)
+  assert.strictEqual(res.glyph, "\uf1c1")
+  assert.strictEqual(["image", "text", "pdf"].includes(res.kind), true)
+  if (res.kind === "image") {
+    assert.strictEqual(fs.existsSync(res.image), true)
   }
 })

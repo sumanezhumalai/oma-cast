@@ -32,7 +32,7 @@ Item {
 
     Text {
       anchors.fill: parent
-      visible: !!pane.detail && !pane.detail.image && !pane.detail.color
+      visible: !!pane.detail && !pane.detail.image && !pane.detail.color && (!pane.detail.glyph || (!!pane.detail.text && pane.detail.text.trim() !== ""))
       textFormat: Text.PlainText
       text: pane.detail ? pane.detail.text : ""
       color: pane.look.foreground
@@ -40,6 +40,35 @@ Item {
       elide: Text.ElideRight
       font.family: Style.fontFamily
       font.pixelSize: Math.round(Style.font.bodySmall * pane.zoom)
+    }
+
+    Column {
+      anchors.centerIn: parent
+      visible: !!pane.detail && !pane.detail.image && !pane.detail.color && (!pane.detail.text || pane.detail.text.trim() === "") && !!pane.detail.glyph
+      spacing: pane.px(12)
+      width: Math.min(parent.width - pane.px(28), pane.px(240))
+
+      Text {
+        anchors.horizontalCenter: parent.horizontalCenter
+        text: pane.detail && pane.detail.glyph ? pane.detail.glyph : ""
+        color: pane.look.foreground
+        opacity: 0.75
+        font.family: pane.look.fontFamily
+        font.pixelSize: pane.px(56)
+      }
+
+      Text {
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: parent.width
+        horizontalAlignment: Text.AlignHCenter
+        textFormat: Text.PlainText
+        text: pane.detail && pane.detail.title ? pane.detail.title : ""
+        color: pane.look.foreground
+        font.family: pane.look.fontFamily
+        font.pixelSize: Math.round(Style.font.body * pane.zoom)
+        font.bold: true
+        elide: Text.ElideMiddle
+      }
     }
 
     // Two images: the new one decodes hidden and the old one stays up until it's

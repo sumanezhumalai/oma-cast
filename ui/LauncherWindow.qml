@@ -827,6 +827,11 @@ PanelWindow {
       if (ctrl && !shift && key === Qt.Key_O) { window.performIfOffered(["open-link"]); return true }
       if (key === Qt.Key_PageUp) { window.move(-8); return true }
       if (key === Qt.Key_PageDown) { window.move(8); return true }
+      if (ctrl && !shift && !alt && key === Qt.Key_F) {
+        if (window.filesView) window.pop()
+        else window.push({ kind: "files", title: "Search Files" })
+        return true
+      }
       if (ctrl && shift && key === Qt.Key_F) { window.performIfOffered(["favorite-add", "favorite-remove"]); return true }
       if (ctrl && shift && key === Qt.Key_C) { window.performIfOffered(["copy-command", "copy-id", "copy-question-answer", "copy-name"]); return true }
       if (ctrl && shift && key === Qt.Key_D) { window.performIfOffered(["delete-all-entries", "clear-recent"]); return true }
@@ -1168,7 +1173,7 @@ PanelWindow {
             : window.view.kind === "calculator-history" && !window.query ? "Type a calculation in the root search, then copy or paste the answer."
             : window.clipboardView && !window.query && window.clipboardFilter === "all"
               ? (window.backend.config.clipboardHistory ? "Copy something and it shows up here." : "Recording is off: clipboardHistory is false in config.json.")
-              : window.filesView && !window.query ? "Type to search files and folders with instant preview." : ""
+              : window.filesView && !window.query ? "Type to search files, or start with > to search folders." : ""
           visible: text.length > 0
           color: window.look.foreground
           opacity: 0.55
