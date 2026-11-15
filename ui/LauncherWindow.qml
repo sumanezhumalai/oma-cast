@@ -126,8 +126,9 @@ PanelWindow {
   // Clipboard History's type dropdown (ref 04 App. A: All/Text/Images/…).
   property string clipboardFilter: "all"
   readonly property bool clipboardView: window.view.kind === "clipboard"
+  readonly property bool filesView: window.view.kind === "files"
   // List on the left, DetailPane on the right.
-  readonly property bool splitView: window.clipboardView || window.view.kind === "theme"
+  readonly property bool splitView: window.clipboardView || window.view.kind === "theme" || window.filesView
   // The dropdown: Clipboard History's types, or the root's (config rootFilter).
   readonly property bool hasFilter: window.clipboardView || (window.atRoot && window.backend.config.rootFilter)
   readonly property var filterOptions: window.clipboardView ? ClipboardHistory.FILTERS : RootSearch.FILTERS
@@ -172,7 +173,12 @@ PanelWindow {
   property int clipboardRevision: 0
   readonly property var clipboardDetail: {
     window.clipboardRevision
+    window.backend.filePreviewRevision
     if (!window.splitView || !window.selectedRow) return null
+    if (window.filesView) {
+      var rf = window.backend.callSync("fileSearch.getDetail", { path: window.selectedRow.path })
+      return rf.ok ? rf.data : null
+    }
     var r = window.backend.callSync(window.clipboardView ? "clipboard.getDetail" : "themes.getDetail", { id: window.selectedRow.itemId })
     return r.ok ? r.data : null
   }
@@ -370,6 +376,7 @@ PanelWindow {
       itemId: String(c.id || ""),
       title: String(c.title || ""),
       subtitle: String(c.subtitle || ""),
+      path: String(c.path || ""),
       glyph: String(c.glyph || ""),
       glyphFont: String(c.glyphFont || ""),
       iconName: String(c.iconName || ""),
@@ -1148,6 +1155,7 @@ PanelWindow {
           text: window.view.kind === "alias" ? window.view.title
             : window.view.kind === "calculator-history" && !window.query ? "No Calculations Yet"
             : window.clipboardView && !window.query && window.clipboardFilter === "all" ? "No Clipboard Entries"
+            : window.filesView && !window.query ? "Search Files & Folders"
             : (window.backend.ready ? "No results" : "Loading…")
           color: window.look.foreground
           font.family: window.look.fontFamily
@@ -1159,7 +1167,8 @@ PanelWindow {
           text: window.view.kind === "alias" ? "Typing the alias exactly in the root search puts this command on top. Leave it empty to remove it."
             : window.view.kind === "calculator-history" && !window.query ? "Type a calculation in the root search, then copy or paste the answer."
             : window.clipboardView && !window.query && window.clipboardFilter === "all"
-              ? (window.backend.config.clipboardHistory ? "Copy something and it shows up here." : "Recording is off: clipboardHistory is false in config.json.") : ""
+              ? (window.backend.config.clipboardHistory ? "Copy something and it shows up here." : "Recording is off: clipboardHistory is false in config.json.")
+              : window.filesView && !window.query ? "Type to search files and folders with instant preview." : ""
           visible: text.length > 0
           color: window.look.foreground
           opacity: 0.55

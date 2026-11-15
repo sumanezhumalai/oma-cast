@@ -52,6 +52,15 @@ var BUILTINS = [
     rootSearch: { when: "always" }
   },
   {
+    id: "builtin:search-files",
+    title: "Search Files",
+    subtitle: "File Search",
+    glyph: "\uf07b",                     // nf-fa-folder
+    keywords: ["file", "files", "folder", "folders", "directory", "search"],
+    run: { push: { kind: "files", title: "Search Files" } },
+    rootSearch: { when: "always" }
+  },
+  {
     id: "builtin:emoji-picker",
     title: "Search Emoji & Symbols",
     subtitle: "Emoji & Symbols",

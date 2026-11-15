@@ -16,6 +16,7 @@ import "core/Calculator.js" as Calculator
 import "core/ClipboardHistory.js" as ClipboardHistory
 import "core/Themes.js" as Themes
 import "core/Emoji.js" as Emoji
+import "core/FileRank.js" as FileRank
 import "services"
 
 Item {
@@ -55,6 +56,13 @@ Item {
     nativeSearch.cancel()
     var query = String(data && data.query || "").trim()
     var view = data && data.view
+    if (view && view.kind === "files") {
+      var dir = (view && view.dir) || Quickshell.env("HOME") || "/"
+      fileSearchService.search(dir, query, function(matches) {
+        callback(backend.callSync("rootSearch.search", Object.assign({}, data, { fileHits: matches })))
+      })
+      return
+    }
     if (query && view && view.kind === "emoji") {
       emojiSearch.search(Ranker.transliterate(query.toLowerCase()), "medium", function(matches) {
         callback(backend.callSync("rootSearch.search", Object.assign({}, data, { fleaHits: matches })))
@@ -652,6 +660,7 @@ Item {
         else if (view && view.kind === "clipboard") sections = ClipboardHistory.sections(backend.clipboardEntries(), query, String(data && data.filter || "all"), ctx.nowMs)
         else if (view && view.kind === "emoji") sections = Emoji.sections(backend.emoji.list, query, Object.assign(backend.emojiState(), { fleaHits: data.fleaHits || null }))
         else if (view && view.kind === "calculator-history") sections = RootSearch.historySections(calculatorStore.doc.history, query, ctx.nowMs, Calculator.filterHistory)
+        else if (view && view.kind === "files") sections = backend.fileSections(data && data.fileHits || [])
         else {
           ctx.filter = String(data && data.filter || "all")
           if (query.trim() && ctx.filter === "all") ctx.calculation = backend.calculate(query)
@@ -678,6 +687,13 @@ Item {
           return ClipboardHistory.actionsFor(clip, app ? app.name : "")
         }
         if (rowId.indexOf("emoji:") === 0) return Emoji.actionsFor(backend.emojiCandidate(rowId).candidate, backend.emojiState().tone)
+        if (rowId.indexOf("file:") === 0) {
+          return [
+            { id: "open", title: "Open", shortcut: "↵" },
+            { id: "reveal", title: "Reveal in File Manager", shortcut: "Ctrl+↵" },
+            { id: "copy-path", title: "Copy Path", shortcut: "Ctrl+Shift+C" }
+          ]
+        }
         var candidate = backend.decorated(rowId)
         if (!candidate) {
           var fallback = RootSearch.FALLBACKS.filter(function(f) { return f.id === data.id })[0]
@@ -722,6 +738,23 @@ Item {
         }
         if (data && String(data.id).indexOf("clipboard:") === 0)
           return backend.clipboardAction(String(data.action || "open"), data.id, !!data.confirmed)
+        if (data && String(data.id).indexOf("file:") === 0) {
+          var fPath = String(data.id).slice(5)
+          var act = String(data.action || "open")
+          if (act === "copy-path") {
+            clipboardWriter.copy(fPath)
+            return { close: true, toast: { text: "Copied path to clipboard" } }
+          }
+          if (act === "reveal") {
+            var fDir = fPath
+            var fSlash = fPath.lastIndexOf("/")
+            if (fSlash > 0) fDir = fPath.substring(0, fSlash)
+            Quickshell.execDetached(["xdg-open", fDir])
+            return { close: true }
+          }
+          Quickshell.execDetached(["xdg-open", fPath])
+          return { close: true }
+        }
         // Destructive commands come back as a confirmation unless confirmed.
         if (!(data && data.confirmed)) {
           var confirm = RootSearch.confirmationFor(String(data && data.id || ""), String(data && data.action || "open"))
@@ -820,6 +853,28 @@ Item {
       }
     })
 
+    Rpc.register(backend.registry, "fileSearch", {
+      getDetail: function(data) {
+        var path = String(data && data.path || "")
+        return backend.fileDetail(path)
+      },
+      open: function(data) {
+        var p = String(data && data.path || "")
+        if (p) Quickshell.execDetached(["xdg-open", p])
+        return null
+      },
+      reveal: function(data) {
+        var p = String(data && data.path || "")
+        if (p) {
+          var dir = p
+          var lastSlash = p.lastIndexOf("/")
+          if (lastSlash > 0) dir = p.substring(0, lastSlash)
+          Quickshell.execDetached(["xdg-open", dir])
+        }
+        return null
+      }
+    })
+
     Rpc.register(backend.registry, "frecency", {
       visit: function(data) { backend.recordVisit(String(data.id), String(data.query || "")); return null },
       get: function(data) {
@@ -875,6 +930,63 @@ Item {
   ThemeSource {
     id: themeSource
     onLoaded: backend.emit("themes.changed", null)
+  }
+
+  FileSearchService {
+    id: fileSearchService
+  }
+
+  property var filePreviewCache: ({})
+  property int filePreviewRevision: 0
+
+  function fileSections(fileHits) {
+    var rows = (fileHits || []).map(function(f) {
+      return {
+        candidate: {
+          id: "file:" + f.path,
+          type: "file",
+          title: f.name,
+          subtitle: f.dir,
+          glyph: f.isDir ? "\uf07b" : "\uf15b",
+          iconless: false,
+          path: f.path,
+          isDir: f.isDir
+        }
+      }
+    })
+    return [{ id: "files", title: "Files", rows: rows }]
+  }
+
+  function fileDetail(path) {
+    if (!path) return null
+    if (backend.filePreviewCache[path]) return backend.filePreviewCache[path]
+    fileSearchService.preview(path, function(reply) {
+      if (!reply || !reply.ok) return
+      var infoRows = [
+        { label: "Kind", value: reply.description || (reply.kind === "dir" ? "Folder" : "File") },
+        { label: "Modified", value: reply.modified || "" },
+        { label: "Size", value: reply.size ? FileRank.formatBytes(reply.size) : "" },
+        { label: "Path", value: path }
+      ]
+      var previewText = ""
+      if (reply.kind === "dir" && reply.entries) {
+        previewText = reply.entries.map(function(e) { return (e.isDir ? "󰉋  " : "󰈔  ") + e.name }).join("\n")
+      } else if (reply.kind === "hidden") {
+        previewText = "Contents hidden for private files"
+      } else if (reply.kind === "binary") {
+        previewText = "Binary file"
+      } else if (reply.text) {
+        previewText = reply.text
+      }
+      var detail = {
+        text: previewText,
+        image: reply.image || "",
+        info: infoRows
+      }
+      backend.filePreviewCache[path] = detail
+      backend.filePreviewRevision++
+    })
+    return { text: "Loading preview…", info: [{ label: "Path", value: path }] }
   }
 
   AppFocuser {

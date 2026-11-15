@@ -154,6 +154,23 @@ Pressing the binding again closes it.
 - Copies from password managers are never recorded: anything marked sensitive, plus the apps in `"clipboardDisabledApplications"` (Wayland app ids; KeePassXC, Bitwarden, 1Password and Seahorse by default). `"clipboardHistory": false` stops recording.
 - The history is in `~/.local/share/omacast/db/clipboard.json`, and images and long text are in `~/.local/share/omacast/clipboard/`, both readable only by you.
 
+## File Search
+
+Search **Search Files** in root, or open it from the built-in commands:
+
+- **Instant search:** Powered by `fd` with multi-term `--and` patterns, basename match tiers (exact, prefix, word boundary, substring, acronym), depth penalties, and a narrow prefix gap so typing near-complete prefixes (`Download` $\rightarrow$ `~/Downloads`) isn't buried by deep cache matches.
+- **Master-detail preview:** 40/60 split view with live previews:
+  - Text & code: first 32 KB / 60 lines with syntax-clean line wrapping.
+  - Images: full preview preserving aspect ratio.
+  - Folders: child item listing with folder (`󰉋 `) and file (`󰈔 `) glyphs.
+  - Information table: kind/MIME, modification timestamp, human-readable size, and full absolute path.
+- **Privacy-first:** Credentials and secrets (`~/.ssh`, `~/.gnupg`, `~/.aws`, `.env*`, `*.key`, `*.pem`, `*id_rsa*`) are never previewed; contents are safely masked as `Contents hidden for private files`.
+- **Keyboard actions:**
+  - `↵`: Open file in default application, or open folder.
+  - `Ctrl+↵`: Reveal file in file manager (`xdg-open` on enclosing directory).
+  - `Ctrl+Shift+C`: Copy full path to clipboard.
+  - `Ctrl+K`: Contextual action panel.
+
 ## Switch Theme
 
 **Switch Theme** lists your Omarchy themes, your own and Omarchy's, with the current one checked and a preview of the highlighted theme beside the list. `↵` applies it with `omarchy-theme-set`, and omacast changes with it. It replaces Omarchy's own theme picker in omacast's results. To open it from Omarchy's theme keys as well:
@@ -184,6 +201,7 @@ omacast is early. Search, ranking and the Omarchy integration are done. Coming n
 - [ ] Settings window
 - [ ] Script Commands
 - [x] Clipboard history, calculator
+- [x] File search with live preview
 - [ ] Snippets, quicklinks
 - [ ] Running Raycast extensions built from the open-source [`raycast/extensions`](https://github.com/raycast/extensions) repo
 - [ ] Window management
