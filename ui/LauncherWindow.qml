@@ -824,7 +824,7 @@ PanelWindow {
       }
       if (window.grid && !ctrl && !alt && (key === Qt.Key_Left || key === Qt.Key_Right)) { window.moveColumn(key === Qt.Key_Left ? -1 : 1); return true }
       if (ctrl && shift && key === Qt.Key_P) { window.performIfOffered(["pin", "unpin"]); return true }
-      if (ctrl && !shift && key === Qt.Key_O) { window.performIfOffered(["open-link"]); return true }
+      if (ctrl && !shift && key === Qt.Key_O) { window.performIfOffered(["open", "open-link"]); return true }
       if (key === Qt.Key_PageUp) { window.move(-8); return true }
       if (key === Qt.Key_PageDown) { window.move(8); return true }
       if (ctrl && !shift && !alt && key === Qt.Key_F) {
@@ -833,7 +833,8 @@ PanelWindow {
         return true
       }
       if (ctrl && shift && key === Qt.Key_F) { window.performIfOffered(["favorite-add", "favorite-remove"]); return true }
-      if (ctrl && shift && key === Qt.Key_C) { window.performIfOffered(["copy-command", "copy-id", "copy-question-answer", "copy-name"]); return true }
+      if (ctrl && shift && key === Qt.Key_C) { window.performIfOffered(["copy-command", "copy-id", "copy-question-answer", "copy-name", "copy-path"]); return true }
+      if (ctrl && !shift && !alt && key === Qt.Key_C && window.filesView) { window.performIfOffered(["copy-path"]); return true }
       if (ctrl && shift && key === Qt.Key_D) { window.performIfOffered(["delete-all-entries", "clear-recent"]); return true }
       if (ctrl && key === Qt.Key_D) { window.performIfOffered(["delete-entry", "remove-recent"]); return true }
       if (alt && shift && key === Qt.Key_D) { window.performIfOffered(["disable"]); return true }
@@ -862,8 +863,12 @@ PanelWindow {
     function onCandidatesRevisionChanged() { if (window.shown && !window.actionPanelOpen && !window.alert) window.rebuild(false) }
     // Exchange rates or zone offsets arrived: re-evaluate a calculation on screen.
     function onCalculatorRevisionChanged() { if (window.shown && !window.actionPanelOpen && window.query) window.rebuild(false) }
-    // A copy, pin or delete: refresh an open Clipboard History.
+    // A copy, pin, delete, or file preview arrival: refresh the active view.
     function onNotification(method) {
+      if (method === "fileSearch.previewChanged") {
+        window.clipboardRevision++
+        return
+      }
       if (method !== "clipboard.stateChanged" && method !== "themes.changed") return
       window.clipboardRevision++
       if (window.shown && window.splitView && !window.actionPanelOpen && !window.alert) window.rebuild(false)

@@ -47,11 +47,13 @@ There's no theme config. omacast binds to Omarchy's own colours, so it changes t
 
 ## Install
 
-Requires Omarchy 4 (Hyprland 0.56+, `omarchy-shell`). Install it from the
-[Omarchy plugin marketplace](https://plugins.omarchy.org), or with:
+> [!NOTE]
+> This fork includes the native, fast **Files & Folders Search** with instant master-detail previews (`Ctrl+F`), folder search (`>`), and PDF thumbnail generation. To install this enhanced version, use this repository URL:
+
+Requires Omarchy 4 (Hyprland 0.56+, `omarchy-shell`). Install with:
 
 ```sh
-omarchy plugin add https://github.com/typecraft-dev/oma-cast --enable
+omarchy plugin add https://github.com/sumanezhumalai/oma-cast.git --enable
 ~/.config/omarchy/plugins/typecraft.omacast/bin/omacast install   # link the omacast CLI into ~/.local/bin
 omacast setup hyprland                                              # bind Alt+Space
 omacast doctor                                                      # check everything is wired up
@@ -169,9 +171,9 @@ Search **Search Files** in root, or press `Ctrl+F` from anywhere in `omacast`:
 - **Privacy-first:** Credentials and secrets (`~/.ssh`, `~/.gnupg`, `~/.aws`, `.env*`, `*.key`, `*.pem`, `*id_rsa*`) are never previewed; contents are safely masked as `Contents hidden for private files`.
 - **Keyboard actions:**
   - `↵`: Open file in default application, or open folder.
-  - `Ctrl+↵`: Reveal file in file manager (`xdg-open` on enclosing directory).
-  - `Ctrl+Shift+C`: Copy full path to clipboard.
-  - `Ctrl+K`: Contextual action panel.
+  - `Ctrl+↵`: Reveal file in file manager (`gio open` on enclosing directory).
+  - `Ctrl+Shift+C` or `Ctrl+C`: Copy full path to clipboard.
+  - `Ctrl+K`: Contextual action panel (Open, Reveal, Copy Path).
 
 ## Switch Theme
 

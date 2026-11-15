@@ -12,6 +12,7 @@ Item {
   property var previewCallback: null
   property string activeSearchQuery: ""
   property string activeSearchDir: ""
+  property string activePreviewPath: ""
   readonly property bool loading: searchProc.running || previewProc.running
 
   function cancel() {
@@ -35,11 +36,12 @@ Item {
   }
 
   function preview(path, callback) {
-    previewCallback = callback
     if (!path) {
       if (callback) callback(null)
       return
     }
+    service.previewCallback = callback
+    service.activePreviewPath = path
     if (previewProc.running) previewProc.running = false
     previewProc.command = ["python3", service.helperPath, "preview", path]
     previewProc.running = true

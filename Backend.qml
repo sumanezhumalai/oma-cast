@@ -742,17 +742,17 @@ Item {
           var fPath = String(data.id).slice(5)
           var act = String(data.action || "open")
           if (act === "copy-path") {
-            clipboardWriter.copy(fPath)
-            return { close: true, toast: { text: "Copied path to clipboard" } }
+            backend.copyText(fPath)
+            return { close: true, toast: { style: "success", title: "Copied path to clipboard" } }
           }
           if (act === "reveal") {
             var fDir = fPath
             var fSlash = fPath.lastIndexOf("/")
             if (fSlash > 0) fDir = fPath.substring(0, fSlash)
-            Quickshell.execDetached(["xdg-open", fDir])
+            Util.execArgv(["gio", "open", fDir])
             return { close: true }
           }
-          Quickshell.execDetached(["xdg-open", fPath])
+          Util.execArgv(["gio", "open", fPath])
           return { close: true }
         }
         // Destructive commands come back as a confirmation unless confirmed.
@@ -860,7 +860,7 @@ Item {
       },
       open: function(data) {
         var p = String(data && data.path || "")
-        if (p) Quickshell.execDetached(["xdg-open", p])
+        if (p) Util.execArgv(["gio", "open", p])
         return null
       },
       reveal: function(data) {
@@ -869,7 +869,7 @@ Item {
           var dir = p
           var lastSlash = p.lastIndexOf("/")
           if (lastSlash > 0) dir = p.substring(0, lastSlash)
-          Quickshell.execDetached(["xdg-open", dir])
+          Util.execArgv(["gio", "open", dir])
         }
         return null
       }
@@ -961,7 +961,18 @@ Item {
     if (!path) return null
     if (backend.filePreviewCache[path]) return backend.filePreviewCache[path]
     fileSearchService.preview(path, function(reply) {
-      if (!reply || !reply.ok) return
+      if (!reply || !reply.ok) {
+        backend.filePreviewCache[path] = {
+          title: path.split("/").pop(),
+          glyph: "\uf15b",
+          text: "Preview unavailable",
+          image: "",
+          info: [{ label: "Path", value: path }]
+        }
+        backend.filePreviewRevision++
+        backend.emit("fileSearch.previewChanged", { path: path })
+        return
+      }
       var infoRows = [
         { label: "Kind", value: reply.description || (reply.kind === "dir" ? "Folder" : "File") },
         { label: "Modified", value: reply.modified || "" },
@@ -985,6 +996,7 @@ Item {
       }
       backend.filePreviewCache[path] = detail
       backend.filePreviewRevision++
+      backend.emit("fileSearch.previewChanged", { path: path })
     })
     return { text: "Loading preview…", info: [{ label: "Path", value: path }] }
   }
