@@ -291,6 +291,7 @@ if (typeof module !== "undefined") {
     FILTERS: FILTERS, DURATIONS: DURATIONS,
     filePaths: filePaths, colorHex: colorHex, categorize: categorize, primaryCategory: primaryCategory,
     add: add, prune: prune, orphanedPaths: orphanedPaths, title: title, candidate: candidate,
-    sections: sections, detail: detail, actionsFor: actionsFor, setPinned: setPinned, isDisabledSource: isDisabledSource
+    sections: sections, detail: detail, actionsFor: actionsFor, setPinned: setPinned, isDisabledSource: isDisabledSource,
+    formatBytes: formatBytes
   }
 }

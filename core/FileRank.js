@@ -102,22 +102,12 @@ function rank(list, pattern, searchRoot, maxTerms) {
   return scored.map(function(s) { return s.f })
 }
 
-function formatBytes(n) {
-  var num = Number(n)
-  if (!isFinite(num) || num <= 0) return "0 B"
-  if (num < 1024) return num + " B"
-  if (num < 1048576) return (Math.round(num / 102.4) / 10) + " KB"
-  if (num < 1073741824) return (Math.round(num / 104857.6) / 10) + " MB"
-  return (Math.round(num / 107374182.4) / 10) + " GB"
-}
-
 if (typeof module !== "undefined") {
   module.exports = {
     nameTier: nameTier,
     matchTier: matchTier,
     pathPenalty: pathPenalty,
     rank: rank,
-    formatBytes: formatBytes,
     FILE_TIER_EXACT: FILE_TIER_EXACT,
     FILE_TIER_PREFIX: FILE_TIER_PREFIX,
     FILE_TIER_WORD: FILE_TIER_WORD,

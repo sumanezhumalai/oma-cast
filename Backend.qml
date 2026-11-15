@@ -978,7 +978,7 @@ Item {
         { label: "Modified", value: reply.modified || "" },
         reply.kind === "dir" && reply.items
           ? { label: "Items", value: reply.items }
-          : { label: "Size", value: reply.size ? FileRank.formatBytes(reply.size) : "" },
+          : { label: "Size", value: reply.size ? ClipboardHistory.formatBytes(reply.size) : "" },
         { label: "Path", value: path }
       ]
       var previewText = ""

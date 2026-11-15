@@ -169,19 +169,19 @@ def _preview_time(seconds):
         return ""
 
 
-def _preview_secret_path(path):
+def _preview_secret(path):
+    real = os.path.realpath(path)
     home = os.environ.get("HOME", "")
     for base in {home, os.path.realpath(home)} if home else ():
         for folder in PREVIEW_SECRET_DIRS:
             root = os.path.join(base, folder)
-            if path == root or path.startswith(root + "/"):
+            if path == root or path.startswith(root + "/") or real == root or real.startswith(root + "/"):
                 return True
-    name = os.path.basename(path).lower()
-    return any(fnmatch.fnmatchcase(name, pat) for pat in PREVIEW_SECRET_NAMES) and not name.endswith(".pub")
-
-
-def _preview_secret(path):
-    return _preview_secret_path(path) or _preview_secret_path(os.path.realpath(path))
+    for p in (path, real):
+        name = os.path.basename(p).lower()
+        if any(fnmatch.fnmatchcase(name, pat) for pat in PREVIEW_SECRET_NAMES) and not name.endswith(".pub"):
+            return True
+    return False
 
 
 def render_pdf_thumb(path, mtime):
@@ -204,24 +204,6 @@ def render_pdf_thumb(path, mtime):
         )
         if res.returncode == 0 and os.path.exists(out_png):
             return out_png
-    except Exception:
-        pass
-    return None
-
-
-def extract_pdf_text(path):
-    try:
-        res = subprocess.run(
-            ["pdftotext", "-l", "1", "-f", "1", path, "-"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-            timeout=2.0,
-        )
-        if res.returncode == 0 and res.stdout:
-            txt = res.stdout.decode("utf-8", "replace").strip()
-            if txt:
-                lines = txt.split("\n")[:PREVIEW_TEXT_LINES]
-                return "\n".join(l.replace("\t", "    ")[:PREVIEW_LINE_CHARS] for l in lines)
     except Exception:
         pass
     return None
@@ -284,12 +266,8 @@ def cmd_preview_file(argv):
         thumb = render_pdf_thumb(path, info.st_mtime)
         if thumb:
             emit(dict(out, kind="image", image=thumb, description="PDF Document", glyph="\uf1c1", text=""))
-            return
-        pdf_txt = extract_pdf_text(path)
-        if pdf_txt:
-            emit(dict(out, kind="text", description="PDF Document", glyph="\uf1c1", text=pdf_txt))
-            return
-        emit(dict(out, kind="pdf", description="PDF Document", glyph="\uf1c1", text=""))
+        else:
+            emit(dict(out, kind="pdf", description="PDF Document", glyph="\uf1c1", text=""))
         return
 
     # 3. Text-based files
@@ -327,7 +305,7 @@ def main():
     cmd = sys.argv[1]
     if cmd == "files":
         cmd_files(sys.argv[2:])
-    elif cmd in ("preview", "preview-file"):
+    elif cmd == "preview":
         cmd_preview_file(sys.argv[2:])
     else:
         emit({"ok": False, "error": f"unknown command {cmd}"})
