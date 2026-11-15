@@ -690,8 +690,8 @@ Item {
         if (rowId.indexOf("file:") === 0) {
           return [
             { id: "open", title: "Open", shortcut: "↵" },
-            { id: "reveal", title: "Reveal in File Manager", shortcut: "Ctrl+↵" },
-            { id: "copy-path", title: "Copy Path", shortcut: "Ctrl+Shift+C" }
+            { id: "reveal", title: "Reveal in File Manager", shortcut: "Shift ↵" },
+            { id: "copy-path", title: "Copy Path", shortcut: "Ctrl Shift C" }
           ]
         }
         var candidate = backend.decorated(rowId)

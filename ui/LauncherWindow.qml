@@ -802,8 +802,11 @@ PanelWindow {
       if (window.isActionPanelKey(ctrl, alt, shift, key)) { window.toggleActionPanel(); return true }
       if (ctrl && !shift && key === Qt.Key_P) { window.toggleDropdown(); return true }
       if (ctrl && !shift && key === Qt.Key_T) { window.toggleToastPanel(); return true }
-      // Shift+Enter opens a new window for apps; Enter focuses an open one.
-      if (enter && shift && !ctrl && !alt && window.performIfOffered(["open-new"])) return true
+      // Shift+Enter reveals in file manager for files; opens a new window for apps.
+      if (enter && shift && !ctrl && !alt) {
+        if (window.filesView && window.performIfOffered(["reveal"])) return true
+        if (window.performIfOffered(["open-new"])) return true
+      }
       if (enter && ctrl && shift) { window.performNth(2); return true }
       if (enter && ctrl) { window.performNth(1); return true }
       if (enter) { window.performNth(0); return true }

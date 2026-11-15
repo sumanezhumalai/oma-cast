@@ -171,7 +171,7 @@ Search **Search Files** in root, or press `Ctrl+F` from anywhere in `omacast`:
 - **Privacy-first:** Credentials and secrets (`~/.ssh`, `~/.gnupg`, `~/.aws`, `.env*`, `*.key`, `*.pem`, `*id_rsa*`) are never previewed; contents are safely masked as `Contents hidden for private files`.
 - **Keyboard actions:**
   - `↵`: Open file in default application, or open folder.
-  - `Ctrl+↵`: Reveal file in file manager (`gio open` on enclosing directory).
+  - `Shift+↵` or `Ctrl+↵`: Reveal file in file manager (`gio open` on enclosing directory).
   - `Ctrl+Shift+C` or `Ctrl+C`: Copy full path to clipboard.
   - `Ctrl+K`: Contextual action panel (Open, Reveal, Copy Path).
 
