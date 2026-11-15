@@ -848,7 +848,10 @@ PanelWindow {
     if (Util.editsFilter(event, window.query)) { window.setQuery(Util.editedFilter(event, window.query)); return true }
     // Super+Backspace (Omarchy's delete to line start) arrives raw under the submap: clear the query.
     if (key === Qt.Key_Backspace && window.superOnly(event)) { window.setQuery(""); return true }
-    if (key === Qt.Key_Backspace && !window.query && !window.atRoot) { window.pop(); return true }
+    if (key === Qt.Key_Backspace && !window.query) {
+      if (!window.atRoot && !window.filesView) window.pop()
+      return true
+    }
     if (window.isTyping(event)) { window.setQuery(window.query + event.text); return true }
     return false
   }
